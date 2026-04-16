@@ -473,7 +473,14 @@ func init() {
 	for name, obj := range gnoBuiltin {
 		switch o := obj.(type) {
 		case *types.Func:
-			sig := o.Type().(*types.Signature)
+			// Clone the signature so that references to predeclared types
+			// (bool, any, int, ...) are remapped from the local builtin.gno
+			// declarations to the corresponding Universe types via cloneMap.
+			// Without this, e.g. istypednil's return type stays as the local
+			// "builtin.bool" Named type (with an invalid underlying), causing
+			// the type checker to reject `if istypednil(x) { ... }` as a
+			// non-boolean condition.
+			sig := ctx.CloneTypeWithNilPackage(o.Type()).(*types.Signature)
 			newFn := types.NewFunc(token.NoPos, nil, name, sig) // a builtin don't have a pos
 			types.Universe.Insert(newFn)                        // register func
 			log.Printf("builtin func %q has been registered", o.Name())

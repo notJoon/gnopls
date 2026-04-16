@@ -83,6 +83,17 @@ func TestIsTypedNil() {
 }`, pkgName)
 		process(pkgName, content)
 	})
+
+	t.Run("istypednil as boolean condition", func(t *testing.T) {
+		content := fmt.Sprintf(`package %s
+func CheckTypedNil(value any) bool {
+	if istypednil(value) {
+		return false
+	}
+	return true
+}`, pkgName)
+		process(pkgName, content)
+	})
 }
 
 type importerFunc func(path string) (*types.Package, error)
